@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { VideoMetadata } from './types';
 import { fetchVideoMetadata } from './services/apiService';
@@ -157,8 +156,8 @@ function App() {
 
         {/* Error Message */}
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-center mb-8 animate-slide-up">
-            {error}
+          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-center mb-8 animate-slide-up font-medium">
+            ⚠️ {error}
           </div>
         )}
 

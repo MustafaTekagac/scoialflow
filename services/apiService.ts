@@ -21,8 +21,17 @@ export const fetchVideoMetadata = async (url: string): Promise<VideoMetadata> =>
   // 1. REAL BACKEND MODE
   // Eğer config.ts içinde API_BASE_URL tanımlıysa gerçek sunucuya istek atar.
   if (API_BASE_URL) {
+    // Zaman aşımı kontrolcüsü (15 saniye)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/api/info?url=${encodeURIComponent(url)}`);
+      const response = await fetch(`${API_BASE_URL}/api/info?url=${encodeURIComponent(url)}`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId); // İşlem başarılıysa zaman sayacını durdur
+
       if (!response.ok) throw new Error("Sunucudan veri alınamadı.");
       const data = await response.json();
       
@@ -39,20 +48,23 @@ export const fetchVideoMetadata = async (url: string): Promise<VideoMetadata> =>
         audioUrl: data.audio_url,       // Backend'den gelen MP3 linki
         isDemo: false
       };
-    } catch (error) {
-      console.warn("Backend bağlantısı başarısız, Demo moduna geçiliyor...", error);
-      // Backend hata verirse kullanıcıyı üzmemek için Demo'ya düşebiliriz veya hatayı fırlatabiliriz.
-      // Şimdilik demo'ya düşürelim:
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.warn("Sunucu yanıt vermedi (Zaman Aşımı).");
+      } else {
+        console.warn("Backend bağlantısı başarısız, Demo moduna geçiliyor...", error);
+      }
+      // Backend hata verirse kullanıcıyı üzmemek için Demo'ya düşüyoruz.
     }
   }
 
-  // 2. DEMO MODE (Backend yoksa burası çalışır)
+  // 2. DEMO MODE (Backend yoksa veya hata verdiyse burası çalışır)
   return new Promise((resolve) => {
     setTimeout(() => {
       const fakeId = url.length % 10;
       resolve({
         id: `demo-${Date.now()}`,
-        title: "Demo Video: Gerçek İndirme İçin Backend Gerekli",
+        title: "Demo Video: Bağlantı Başarısız veya Backend Yok",
         thumbnail: `https://picsum.photos/800/450?random=${fakeId}`,
         duration: "00:30",
         author: "@DemoUser",
