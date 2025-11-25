@@ -1,12 +1,19 @@
-FROM python:3.10
+# Python imajını kullan
+FROM python:3.9-slim
 
+# Gerekli sistem araçlarını ve FFmpeg'i kur
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
+# Çalışma dizinini ayarla
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
+# Dosyaları kopyala
 COPY . .
 
-EXPOSE 8000
+# Python kütüphanelerini yükle
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "server.py"]
+# Uygulamayı başlat (Render için PORT ayarı)
+CMD gunicorn server:app --bind 0.0.0.0:$PORT
