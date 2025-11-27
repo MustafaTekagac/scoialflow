@@ -6,4 +6,4 @@
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://socoialflow.onrender.com'; 
 
 // Demo modunda beklenecek süre (ms)
-export const DEMO_DELAY = 1500;
+export const DEMO_DELAY = 2500;

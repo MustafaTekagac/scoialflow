@@ -21,9 +21,9 @@ export const fetchVideoMetadata = async (url: string): Promise<VideoMetadata> =>
   // 1. REAL BACKEND MODE
   // Eğer config.ts içinde API_BASE_URL tanımlıysa gerçek sunucuya istek atar.
   if (API_BASE_URL) {
-    // Zaman aşımı kontrolcüsü (15 saniye)
+    // Zaman aşımı kontrolcüsü (Render cold start için süreyi 90 saniyeye çıkardık)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/info?url=${encodeURIComponent(url)}`, {
@@ -49,8 +49,10 @@ export const fetchVideoMetadata = async (url: string): Promise<VideoMetadata> =>
         isDemo: false
       };
     } catch (error: any) {
+      clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
-        console.warn("Sunucu yanıt vermedi (Zaman Aşımı).");
+        console.warn("Sunucu yanıt vermedi (Zaman Aşımı - 90sn).");
+        throw new Error("Sunucu uyanırken zaman aşımına uğradı. Lütfen 30 saniye sonra tekrar deneyin.");
       } else {
         console.warn("Backend bağlantısı başarısız, Demo moduna geçiliyor...", error);
       }
